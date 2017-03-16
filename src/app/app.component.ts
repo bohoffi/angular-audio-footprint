@@ -1,31 +1,16 @@
 import { AudioWrapper, WrapperOpts } from './util/audio-wrapper';
 import { Observable } from 'rxjs/Rx';
 import { ChartComponent, ChartOpts } from './chart/chart.component';
-import { Component, ViewChild, AfterViewInit, ElementRef } from '@angular/core';
-
-const chartOpts: ChartOpts = {
-  cellHeight: 2,
-  cellWidth: 5,
-  cellX: 5,
-  cellY: 2
-};
-const wrapperOpts: WrapperOpts = {
-  // fftSize: 256,
-  fftSize: 512,
-  // interval: 250
-  interval: 100
-};
+import { Component, ViewChild, ElementRef, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent implements OnInit {
 
   freqData: Array<Array<number>> = [];
-
-  private _audioFile: File;
 
   @ViewChild(ChartComponent)
   private chart: ChartComponent;
@@ -35,11 +20,8 @@ export class AppComponent implements AfterViewInit {
   constructor(private _audioWrapper: AudioWrapper) {
   }
 
-  ngAfterViewInit(): void {
-
-    this.chart.setOpts(chartOpts);
-
-    this._audioWrapper.init(this._player.nativeElement, wrapperOpts);
+  ngOnInit(): void {
+    this._audioWrapper.init(this._player.nativeElement);
     this._audioWrapper.dataStream.subscribe(
       data => {
         // console.log(res);
@@ -50,13 +32,15 @@ export class AppComponent implements AfterViewInit {
     );
   }
 
-  fileSelected(file: File): void {
-    console.log(file);
-    this._audioFile = file;
-    this._player.nativeElement.src = URL.createObjectURL(file);
+  settingsChanged(opts): void {
+    this._audioWrapper.update(opts.wrapper);
+    this.chart.setOpts(opts.chart);
   }
 
-  get fileSet(): boolean {
-    return this._audioFile !== undefined && this._audioFile !== null;
+  fileSelected(file: File): void {
+    this._player.nativeElement.src = URL.createObjectURL(file);
+    this.freqData = [];
+    this._audioWrapper.reset();
+    this.chart.reset();
   }
 }

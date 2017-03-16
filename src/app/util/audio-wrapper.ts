@@ -61,12 +61,29 @@ export class AudioWrapper {
         audioSrc.connect(this._audioContext.destination);
     }
 
+    update(opts: WrapperOpts): void {
+        this._opts = opts || _defaultOpts;
+        this._update();
+    }
+
+    private _update(): void {
+        this._analyserNode.fftSize = this._opts.fftSize;
+        this._freqData = new Uint8Array(this._analyserNode.frequencyBinCount);
+    }
+
+    reset():void{
+        window.clearInterval(this._visualizerIntervalId);
+    }
+
     get dataStream(): Observable<Array<number>> {
         return this._dataSubject.asObservable().share();
     }
 
     private _processFreqData(): void {
         this._analyserNode.getByteFrequencyData(this._freqData);
+        if (!this._dataSubject) {
+            this._dataSubject = new Subject();
+        }
         this._dataSubject.next(Array.from(this._freqData.slice()));
     }
 }

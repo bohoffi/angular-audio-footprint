@@ -1,0 +1,31 @@
+<md-card>
+  <md-card-subtitle>
+    Settings
+  </md-card-subtitle>
+  <md-card-content>
+    <form [formGroup]="settings">
+      <div formGroupName="wrapper">
+        <md-input-container>
+          <input mdInput type="number" placeholder="fftSize" formControlName="fftSize">
+        </md-input-container>
+        <md-input-container>
+          <input mdInput type="number" placeholder="interval (ms)" formControlName="interval">
+        </md-input-container>
+      </div>
+      <div formGroupName="chart">
+        <md-input-container>
+          <input mdInput type="number" placeholder="cellHeight" formControlName="cellHeight">
+        </md-input-container>
+        <md-input-container>
+          <input mdInput type="number" placeholder="cellWidth" formControlName="cellWidth">
+        </md-input-container>
+        <md-input-container>
+          <input mdInput type="number" placeholder="cellX" formControlName="cellX">
+        </md-input-container>
+        <md-input-container>
+          <input mdInput type="number" placeholder="cellY" formControlName="cellY">
+        </md-input-container>
+      </div>
+    </form>
+  </md-card-content>
+</md-card>

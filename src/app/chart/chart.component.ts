@@ -28,7 +28,6 @@ export class ChartComponent {
 
   private _rThreshold: number = 85;
   private _gThreshold: number = 170;
-  // private _bThreshold: number = 255;
 
   setOpts(opts: ChartOpts): void {
     this._opts = opts || _defaultOpts;
@@ -37,9 +36,7 @@ export class ChartComponent {
   update(data: Array<Array<number>>): void {
 
     let self = this;
-
     this._data = data;
-
     const svg = D3.select('#svg');
 
     /**
@@ -56,32 +53,20 @@ export class ChartComponent {
       .each(function (row, index) {
         D3.select(this)
           .selectAll('rect')
-          // .data(row)
           .data(row.filter(value => value > 0))
           .enter()
           .append('rect')
           .attr('x', function (d, j) {
             return j * self._opts.cellX;
-            // return j * 5;
-            // return j * 25;
           })
           .attr('y', function (d, i, j) {
-            // return index * 25;
-            // return index * 15;
-            // return index * 5;
             return index * self._opts.cellY;
           })
           .attr('width', function () {
             return self._opts.cellWidth;
-            // return 5;
-            // return 15;
-            // return 25;
           })
           .attr('height', function () {
             return self._opts.cellHeight;
-            // return 5;
-            // return 15;
-            // return 25;
           })
           .attr('fill', function (d, j) {
 
@@ -94,5 +79,9 @@ export class ChartComponent {
             }
           });
       });
+  }
+
+  reset(): void {
+    D3.selectAll('#svg > *').remove();
   }
 }

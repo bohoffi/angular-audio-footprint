@@ -1,23 +1,27 @@
 import { AudioWrapper } from './util/audio-wrapper';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
+import {MaterialModule} from '@angular/material';
 
 import { AppComponent } from './app.component';
 import { ChartComponent } from './chart/chart.component';
 import { FileSelectorComponent } from './file-selector/file-selector.component';
+import { SettingsComponent } from './settings/settings.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     ChartComponent,
-    FileSelectorComponent
+    FileSelectorComponent,
+    SettingsComponent
   ],
   imports: [
     BrowserModule,
-    FormsModule,
-    HttpModule
+    ReactiveFormsModule,
+    HttpModule,
+    MaterialModule
   ],
   providers: [
     AudioWrapper

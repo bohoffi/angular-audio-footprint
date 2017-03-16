@@ -1,4 +1,8 @@
 <div>
+    <app-settings (opts)="settingsChanged($event)"></app-settings>
+</div>
+
+<div>
     <app-file-selector (audioFile)="fileSelected($event)"></app-file-selector>
 </div>
 
