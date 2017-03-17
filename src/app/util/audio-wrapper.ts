@@ -1,3 +1,4 @@
+import { defaultWrapperOpts } from './consts';
 import { Injectable } from "@angular/core";
 import { Subject } from "rxjs/Subject";
 import { Observable } from "rxjs/RX";
@@ -6,11 +7,6 @@ export interface WrapperOpts {
     fftSize: number;
     interval: number;
 }
-
-const _defaultOpts: WrapperOpts = {
-    fftSize: 64,
-    interval: 2000
-};
 
 @Injectable()
 export class AudioWrapper {
@@ -32,7 +28,7 @@ export class AudioWrapper {
 
     init(player: HTMLAudioElement, opts?: WrapperOpts): void {
         this._player = player;
-        this._opts = opts || _defaultOpts;
+        this._opts = opts || defaultWrapperOpts;
 
         //https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events
         Observable.fromEvent(this._player, 'playing')
@@ -62,7 +58,7 @@ export class AudioWrapper {
     }
 
     update(opts: WrapperOpts): void {
-        this._opts = opts || _defaultOpts;
+        this._opts = opts || defaultWrapperOpts;
         this._update();
     }
 
@@ -71,7 +67,9 @@ export class AudioWrapper {
         this._freqData = new Uint8Array(this._analyserNode.frequencyBinCount);
     }
 
-    reset():void{
+    reset(): void {
+        this._player.pause();
+        this._player.currentTime = 0;
         window.clearInterval(this._visualizerIntervalId);
     }
 

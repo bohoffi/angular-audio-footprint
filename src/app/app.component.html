@@ -1,5 +1,5 @@
 <div>
-    <app-settings (opts)="settingsChanged($event)"></app-settings>
+    <button md-raised-button color="primary" (click)="openSettings()">Settings</button>
 </div>
 
 <div>
@@ -11,5 +11,5 @@
 </div>
 
 <div>
-    <app-chart></app-chart>
+    <app-chart [svgHeight]="freqData.length * (chart ? chart.opts.cellHeight : 1)" [svgWidth]="maxFreqs * (chart ? chart.opts.cellWidth : 1)"></app-chart>
 </div>

@@ -1,4 +1,5 @@
 import { Component, OnInit, Input, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { defaultChartOpts } from "app/util/consts";
 import * as D3 from 'd3';
 
 export interface ChartOpts {
@@ -7,13 +8,6 @@ export interface ChartOpts {
   cellX: number;
   cellY: number;
 }
-
-const _defaultOpts: ChartOpts = {
-  cellHeight: 5,
-  cellWidth: 5,
-  cellX: 5,
-  cellY: 5
-};
 
 @Component({
   selector: 'app-chart',
@@ -24,13 +18,22 @@ export class ChartComponent {
 
   private _data: Array<Array<number>> = [];
 
-  private _opts: ChartOpts;
+  opts: ChartOpts;
 
   private _rThreshold: number = 85;
   private _gThreshold: number = 170;
 
+  @Input()
+  svgWidth: number = 0;
+  @Input()
+  svgHeight: number = 0;
+
+  constructor() {
+    this.opts = defaultChartOpts;
+  }
+
   setOpts(opts: ChartOpts): void {
-    this._opts = opts || _defaultOpts;
+    this.opts = opts || defaultChartOpts;
   }
 
   update(data: Array<Array<number>>): void {
@@ -57,16 +60,16 @@ export class ChartComponent {
           .enter()
           .append('rect')
           .attr('x', function (d, j) {
-            return j * self._opts.cellX;
+            return j * self.opts.cellX;
           })
           .attr('y', function (d, i, j) {
-            return index * self._opts.cellY;
+            return index * self.opts.cellY;
           })
           .attr('width', function () {
-            return self._opts.cellWidth;
+            return self.opts.cellWidth;
           })
           .attr('height', function () {
-            return self._opts.cellHeight;
+            return self.opts.cellHeight;
           })
           .attr('fill', function (d, j) {
 

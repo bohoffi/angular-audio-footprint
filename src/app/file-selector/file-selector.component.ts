@@ -1,4 +1,4 @@
-import { Component, OnInit, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit, EventEmitter, Output, ViewChild, ElementRef } from '@angular/core';
 
 @Component({
   selector: 'app-file-selector',
@@ -7,18 +7,34 @@ import { Component, OnInit, EventEmitter, Output } from '@angular/core';
 })
 export class FileSelectorComponent {
 
-  private _selectedFiles: FileList;
+  file: File;
+  hasDropZoneOver: boolean = false;
+
+  @ViewChild('selector')
+  fileInput: ElementRef;
 
   @Output()
   audioFile = new EventEmitter();
 
   onChange(event) {
-    this._selectedFiles = event.srcElement.files;
+    if (event.srcElement.files && event.srcElement.files.length) {
+      this.file = event.srcElement.files.item(0);
+      this.audioFile.emit(this.file);
+    }
   }
 
+  fileOver(e: any): void {
+    this.hasDropZoneOver = e;
+  }
+
+  fileDropped(droppedFiles: FileList): void {
+    this.fileInput.nativeElement.files = droppedFiles;
+  }
+
+  /**
+   * Trigger file selction.
+   */
   select(): void {
-    if (this._selectedFiles && this._selectedFiles.length) {
-      this.audioFile.emit(this._selectedFiles.item(0));
-    }
+    this.fileInput.nativeElement.click();
   }
 }

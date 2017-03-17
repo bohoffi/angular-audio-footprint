@@ -1,4 +1,16 @@
-<div>
-  <input type="file" (change)="onChange($event)" />
-</div>
-<button md-raised-button color="primary" (click)="select()">Take It</button>
+<md-card>
+  <div fxLayout="row" fxLayout.xs="column" fxLayout.sm="column">
+    <div fxflex.gt-sm="25">
+      <button md-raised-button color="primary" (click)="select()">Select File</button>
+      <input #selector [hidden]="true" type="file" (change)="onChange($event)" />
+    </div>
+    <div appFiledrop (fileOver)="fileOver($event)" (onFileDrop)="fileDropped($event)" [ngClass]="{'dropzone-over': hasDropZoneOver}" class="dropzone" fxflex.gt-sm="75">
+      Drop file
+    </div>
+  </div>
+  <div>
+    <md-input-container>
+      <input mdInput type="text" disabled placeholder="Selected File" value="{{file?.name}}">
+    </md-input-container>
+  </div>
+</md-card>

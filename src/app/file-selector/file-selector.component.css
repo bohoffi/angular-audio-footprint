@@ -1,0 +1,20 @@
+button {
+    margin: 0.5em;
+}
+
+.dropzone {
+    border: dotted 3px lightgray;
+    background-color: #f5f5f5;
+    width: 100%;
+    padding-top: 1.5em;
+    text-align: center;
+    padding-bottom: 1.5em;
+}
+
+.dropzone-over {
+    border: dotted 3px red;
+}
+
+md-input-container {
+    width: 90%;
+}
