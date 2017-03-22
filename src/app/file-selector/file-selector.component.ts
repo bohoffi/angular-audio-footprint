@@ -17,8 +17,9 @@ export class FileSelectorComponent {
   audioFile = new EventEmitter();
 
   onChange(event) {
-    if (event.srcElement.files && event.srcElement.files.length) {
-      this.file = event.srcElement.files.item(0);
+    const target = event.target || event.srcElement;
+    if (target && target.files && target.files.length) {
+      this.file = target.files.item(0);
       this.audioFile.emit(this.file);
     }
   }
@@ -28,7 +29,8 @@ export class FileSelectorComponent {
   }
 
   fileDropped(droppedFiles: FileList): void {
-    this.fileInput.nativeElement.files = droppedFiles;
+    this.file = droppedFiles.item(0);
+    this.audioFile.emit(this.file);
   }
 
   /**

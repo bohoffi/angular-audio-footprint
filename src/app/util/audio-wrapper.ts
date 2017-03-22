@@ -4,84 +4,106 @@ import { Subject } from "rxjs/Subject";
 import { Observable } from "rxjs/RX";
 
 export interface WrapperOpts {
-    fftSize: number;
-    interval: number;
+  fftSize: number;
+  interval: number;
 }
 
 @Injectable()
 export class AudioWrapper {
 
-    private _audioContext: AudioContext;
-    private _player: HTMLAudioElement;
-    private _analyserNode: AnalyserNode;
+  private _audioContext: AudioContext;
+  private _player: HTMLAudioElement;
+  private _analyserNode: AnalyserNode;
 
-    private _opts: WrapperOpts;
+  private _opts: WrapperOpts;
 
-    private _freqData: Uint8Array;
+  private _freqData: Uint8Array;
 
-    private _visualizerIntervalId: number = 0;
-    private _dataSubject: Subject<Array<number>> = new Subject();
+  private _visualizerIntervalId: number = 0;
+  private _dataSubject: Subject<Array<number>> = new Subject();
 
-    constructor() {
-        this._audioContext = new ((<any>window).AudioContext || (<any>window).webkitAudioContext)();
+  constructor() {
+    this._audioContext = this._getAudioContext();
+  }
+
+  private _getAudioContext(): any {
+    if (typeof (<any>window).AudioContext !== "undefined") {
+      console.log('AudioContext');
+      return new (<any>window).AudioContext();
+    } else if (typeof (<any>window).webkitAudioContext !== "undefined") {
+      console.log('webkitAudioContext');
+      return new (<any>window).webkitAudioContext();
+    } else if (typeof (<any>window).mozAudioContext !== "undefined") {
+      console.log('mozAudioContext');
+      return new (<any>window).mozAudioContext();
+    } else {
+      console.log('NONE OF THEM!');
+      return null;
     }
+  }
 
-    init(player: HTMLAudioElement, opts?: WrapperOpts): void {
-        this._player = player;
-        this._opts = opts || defaultWrapperOpts;
+  get audioApiSupported(): boolean {
+    return this._audioContext !== null;
+  }
 
-        //https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events
-        Observable.fromEvent(this._player, 'playing')
-            .subscribe(e => {
-                console.log('Started playing');
-                this._visualizerIntervalId = window.setInterval(() => this._processFreqData(), this._opts.interval);
-            });
-        Observable.fromEvent(this._player, 'pause')
-            .subscribe(e => {
-                console.log('Playback has paused');
-                window.clearInterval(this._visualizerIntervalId);
-            });
-        Observable.fromEvent(this._player, 'ended')
-            .subscribe(e => {
-                console.log('Playback has ended');
-                window.clearInterval(this._visualizerIntervalId);
-                this._dataSubject.complete();
-            });
+  init(player: HTMLAudioElement, opts?: WrapperOpts): void {
+    this._player = player;
+    this._opts = opts || defaultWrapperOpts;
 
-        const audioSrc = this._audioContext.createMediaElementSource(this._player);
-        this._analyserNode = this._audioContext.createAnalyser();
-        this._analyserNode.fftSize = this._opts.fftSize;
-        this._freqData = new Uint8Array(this._analyserNode.frequencyBinCount);
-
-        audioSrc.connect(this._analyserNode);
-        audioSrc.connect(this._audioContext.destination);
-    }
-
-    update(opts: WrapperOpts): void {
-        this._opts = opts || defaultWrapperOpts;
-        this._update();
-    }
-
-    private _update(): void {
-        this._analyserNode.fftSize = this._opts.fftSize;
-        this._freqData = new Uint8Array(this._analyserNode.frequencyBinCount);
-    }
-
-    reset(): void {
-        this._player.pause();
-        this._player.currentTime = 0;
+    //https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events
+    Observable.fromEvent(this._player, 'playing')
+      .subscribe(e => {
+        console.log('Started playing');
+        this._visualizerIntervalId = window.setInterval(() => this._processFreqData(), this._opts.interval);
+      });
+    Observable.fromEvent(this._player, 'pause')
+      .subscribe(e => {
+        console.log('Playback has paused');
         window.clearInterval(this._visualizerIntervalId);
-    }
+      });
+    Observable.fromEvent(this._player, 'ended')
+      .subscribe(e => {
+        console.log('Playback has ended');
+        window.clearInterval(this._visualizerIntervalId);
+        this._dataSubject.complete();
+      });
 
-    get dataStream(): Observable<Array<number>> {
-        return this._dataSubject.asObservable().share();
-    }
+    if (this._audioContext) {
+      const audioSrc = this._audioContext.createMediaElementSource(this._player);
+      this._analyserNode = this._audioContext.createAnalyser();
+      this._analyserNode.fftSize = this._opts.fftSize;
+      this._freqData = new Uint8Array(this._analyserNode.frequencyBinCount);
 
-    private _processFreqData(): void {
-        this._analyserNode.getByteFrequencyData(this._freqData);
-        if (!this._dataSubject) {
-            this._dataSubject = new Subject();
-        }
-        this._dataSubject.next(Array.from(this._freqData.slice()));
+      audioSrc.connect(this._analyserNode);
+      audioSrc.connect(this._audioContext.destination);
     }
+  }
+
+  update(opts: WrapperOpts): void {
+    this._opts = opts || defaultWrapperOpts;
+    this._update();
+  }
+
+  private _update(): void {
+    this._analyserNode.fftSize = this._opts.fftSize;
+    this._freqData = new Uint8Array(this._analyserNode.frequencyBinCount);
+  }
+
+  reset(): void {
+    this._player.pause();
+    this._player.currentTime = 0;
+    window.clearInterval(this._visualizerIntervalId);
+  }
+
+  get dataStream(): Observable<Array<number>> {
+    return this._dataSubject.asObservable().share();
+  }
+
+  private _processFreqData(): void {
+    this._analyserNode.getByteFrequencyData(this._freqData);
+    if (!this._dataSubject) {
+      this._dataSubject = new Subject();
+    }
+    this._dataSubject.next(Array.from(this._freqData.slice()));
+  }
 }

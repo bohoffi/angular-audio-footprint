@@ -1,7 +1,7 @@
 import { SettingsDialogComponent } from './settings/settings.dialog.component';
 import { AudioWrapper, WrapperOpts } from './util/audio-wrapper';
 import { ChartComponent, ChartOpts } from './chart/chart.component';
-import { Component, ViewChild, ElementRef, OnInit } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewInit, VERSION, AfterContentInit, OnInit } from '@angular/core';
 import { MdDialog } from "@angular/material";
 import { Observable } from "rxjs/Observable";
 
@@ -10,10 +10,11 @@ import { Observable } from "rxjs/Observable";
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
 
   freqData: Array<Array<number>> = [];
   maxFreqs: number = 0;
+  audioApiSupported: boolean = true;
 
   @ViewChild(ChartComponent)
   chart: ChartComponent;
@@ -22,21 +23,28 @@ export class AppComponent implements OnInit {
 
   constructor(private _audioWrapper: AudioWrapper,
     private _dialog: MdDialog) {
+    console.log('Angular: ', VERSION.full);
   }
 
   ngOnInit(): void {
-    this._audioWrapper.init(this.player.nativeElement);
-    this._audioWrapper.dataStream.subscribe(
-      data => {
-        const d = data.filter(value => value > 0);
-        this.freqData.push(d);
-        if (d.length > this.maxFreqs) {
-          this.maxFreqs = d.length;
-        }
-        this.chart.update(this.freqData);
-      },
-      error => console.error(error)
-    );
+    this.audioApiSupported = this._audioWrapper.audioApiSupported;
+  }
+
+  ngAfterViewInit(): void {
+    if (this.audioApiSupported) {
+      this._audioWrapper.init(this.player.nativeElement);
+      this._audioWrapper.dataStream.subscribe(
+        data => {
+          const d = data.filter(value => value > 0);
+          this.freqData.push(d);
+          if (d.length > this.maxFreqs) {
+            this.maxFreqs = d.length;
+          }
+          this.chart.update(this.freqData);
+        },
+        error => console.error(error)
+      );
+    }
   }
 
   openSettings(): void {

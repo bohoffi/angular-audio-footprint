@@ -1,15 +1,22 @@
-<div>
+<div *ngIf="audioApiSupported; else unsupportedTpl">
+  <div>
     <button md-raised-button color="primary" (click)="openSettings()">Settings</button>
-</div>
+  </div>
 
-<div>
+  <div>
     <app-file-selector (audioFile)="fileSelected($event)"></app-file-selector>
-</div>
+  </div>
 
-<div>
+  <div>
     <audio #player controls></audio>
+  </div>
+
+  <div>
+    <app-chart [svgHeight]="freqData.length * (chart ? chart.opts.cellHeight : 1)" [svgWidth]="maxFreqs * (chart ? chart.opts.cellWidth : 1)"></app-chart>
+  </div>
 </div>
 
-<div>
-    <app-chart [svgHeight]="freqData.length * (chart ? chart.opts.cellHeight : 1)" [svgWidth]="maxFreqs * (chart ? chart.opts.cellWidth : 1)"></app-chart>
-</div>
+<ng-template #unsupportedTpl>
+  <p>The application has been disabled because your browser does not support the Web Audio API. (e.g. <a href="https://developer.microsoft.com/en-us/microsoft-edge/platform/status/webaudioapi/"
+      target="_blank">Internet Explorer</a>)</p>
+</ng-template>
