@@ -7,10 +7,10 @@ export class FiledropDirective {
 
   protected element: ElementRef;
 
-  @Output() 
-  fileOver:EventEmitter<any> = new EventEmitter();
-  @Output() 
-  onFileDrop:EventEmitter<File[]> = new EventEmitter<File[]>();
+  @Output()
+  fileOver: EventEmitter<any> = new EventEmitter();
+  @Output()
+  onFileDrop: EventEmitter<File[]> = new EventEmitter<File[]>();
 
   public constructor(element: ElementRef) {
     this.element = element;
@@ -18,7 +18,7 @@ export class FiledropDirective {
 
   @HostListener('drop', ['$event'])
   public onDrop(event: any): void {
-    let transfer = this._getTransfer(event);
+    const transfer = this._getTransfer(event);
     if (!transfer) {
       return;
     }
@@ -30,7 +30,7 @@ export class FiledropDirective {
 
   @HostListener('dragover', ['$event'])
   public onDragOver(event: any): void {
-    let transfer = this._getTransfer(event);
+    const transfer = this._getTransfer(event);
     if (!this._haveFiles(transfer.types)) {
       return;
     }

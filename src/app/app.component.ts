@@ -1,10 +1,15 @@
-import { SettingsDialogComponent } from './settings/settings.dialog.component';
-import { AudioWrapper, WrapperOpts } from './util/audio-wrapper';
-import { ChartComponent, ChartOpts } from './chart/chart.component';
 import { Component, ViewChild, ElementRef, AfterViewInit, VERSION, AfterContentInit, OnInit } from '@angular/core';
-import { MdDialog } from "@angular/material";
-import { Observable } from "rxjs/Observable";
 
+import { MdDialog } from '@angular/material';
+
+import { ChartComponent } from './chart/chart.component';
+import { SettingsDialogComponent } from './settings/settings.dialog.component';
+import { AudioWrapper } from './util/audio-wrapper';
+import { defaultWrapperOpts, defaultChartOpts } from './util/consts';
+import { ClearSubscriptions } from './util/decorators';
+import { WrapperOpts, ChartOpts } from './util/interfaces';
+
+@ClearSubscriptions()
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -13,13 +18,16 @@ import { Observable } from "rxjs/Observable";
 export class AppComponent implements OnInit, AfterViewInit {
 
   freqData: Array<Array<number>> = [];
-  maxFreqs: number = 0;
-  audioApiSupported: boolean = true;
+  maxFreqs = 0;
+  audioApiSupported = true;
 
   @ViewChild(ChartComponent)
   chart: ChartComponent;
   @ViewChild('player')
   player: ElementRef;
+
+  private _subscriptions: any = {};
+  private _opts: { wrapper: WrapperOpts, chart: ChartOpts } = { wrapper: defaultWrapperOpts, chart: defaultChartOpts };
 
   constructor(private _audioWrapper: AudioWrapper,
     private _dialog: MdDialog) {
@@ -32,7 +40,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     if (this.audioApiSupported) {
-      this._audioWrapper.init(this.player.nativeElement);
+      this._subscriptions = this._audioWrapper.init(this.player.nativeElement);
       this._audioWrapper.dataStream.subscribe(
         data => {
           const d = data.filter(value => value > 0);
@@ -48,10 +56,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   openSettings(): void {
-    let dialogRef = this._dialog.open(SettingsDialogComponent);
+    const dialogRef = this._dialog.open(SettingsDialogComponent, { data: this._opts });
     dialogRef.afterClosed().subscribe(
-      opts => {
+      (opts: { wrapper: WrapperOpts, chart: ChartOpts }) => {
         if (opts) {
+          this._opts = opts;
           this._audioWrapper.update(opts.wrapper);
           this.chart.setOpts(opts.chart);
           this._reset();
@@ -64,6 +73,21 @@ export class AppComponent implements OnInit, AfterViewInit {
   fileSelected(file: File): void {
     this.player.nativeElement.src = URL.createObjectURL(file);
     this._reset();
+  }
+
+  downloadSvg(): void {
+    console.log('download');
+    this.player.nativeElement.pause();
+
+    const svgData = this.chart.svg.nativeElement.outerHTML;
+    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const svgUrl = URL.createObjectURL(svgBlob);
+    const downloadLink = document.createElement('a');
+    downloadLink.href = svgUrl;
+    downloadLink.download = 'newesttree.svg';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
   }
 
   private _reset(): void {

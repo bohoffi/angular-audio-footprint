@@ -1,5 +1,4 @@
-import { WrapperOpts } from "app/util/audio-wrapper";
-import { ChartOpts } from "app/chart/chart.component";
+import { ChartOpts, WrapperOpts } from './interfaces';
 
 export const defaultWrapperOpts: WrapperOpts = {
     // fftSize: 256,

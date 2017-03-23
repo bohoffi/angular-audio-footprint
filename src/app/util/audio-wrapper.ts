@@ -1,12 +1,10 @@
-import { defaultWrapperOpts } from './consts';
-import { Injectable } from "@angular/core";
-import { Subject } from "rxjs/Subject";
-import { Observable } from "rxjs/RX";
+import { Injectable } from '@angular/core';
 
-export interface WrapperOpts {
-  fftSize: number;
-  interval: number;
-}
+import { Observable } from 'rxjs/Observable';
+import { Subject } from 'rxjs/Subject';
+
+import { defaultWrapperOpts } from './consts';
+import { WrapperOpts } from './interfaces';
 
 @Injectable()
 export class AudioWrapper {
@@ -19,51 +17,30 @@ export class AudioWrapper {
 
   private _freqData: Uint8Array;
 
-  private _visualizerIntervalId: number = 0;
+  private _visualizerIntervalId = 0;
   private _dataSubject: Subject<Array<number>> = new Subject();
 
   constructor() {
     this._audioContext = this._getAudioContext();
   }
 
-  private _getAudioContext(): any {
-    if (typeof (<any>window).AudioContext !== "undefined") {
-      console.log('AudioContext');
-      return new (<any>window).AudioContext();
-    } else if (typeof (<any>window).webkitAudioContext !== "undefined") {
-      console.log('webkitAudioContext');
-      return new (<any>window).webkitAudioContext();
-    } else if (typeof (<any>window).mozAudioContext !== "undefined") {
-      console.log('mozAudioContext');
-      return new (<any>window).mozAudioContext();
-    } else {
-      console.log('NONE OF THEM!');
-      return null;
-    }
-  }
-
-  get audioApiSupported(): boolean {
-    return this._audioContext !== null;
-  }
-
-  init(player: HTMLAudioElement, opts?: WrapperOpts): void {
+  init(player: HTMLAudioElement, opts?: WrapperOpts): any {
     this._player = player;
     this._opts = opts || defaultWrapperOpts;
 
-    //https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events
-    Observable.fromEvent(this._player, 'playing')
+    const subscriptions: any = {};
+
+    // https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events
+    subscriptions.playing = Observable.fromEvent(this._player, 'playing')
       .subscribe(e => {
-        console.log('Started playing');
         this._visualizerIntervalId = window.setInterval(() => this._processFreqData(), this._opts.interval);
       });
-    Observable.fromEvent(this._player, 'pause')
+    subscriptions.pausing = Observable.fromEvent(this._player, 'pause')
       .subscribe(e => {
-        console.log('Playback has paused');
         window.clearInterval(this._visualizerIntervalId);
       });
-    Observable.fromEvent(this._player, 'ended')
+    subscriptions.ended = Observable.fromEvent(this._player, 'ended')
       .subscribe(e => {
-        console.log('Playback has ended');
         window.clearInterval(this._visualizerIntervalId);
         this._dataSubject.complete();
       });
@@ -77,16 +54,13 @@ export class AudioWrapper {
       audioSrc.connect(this._analyserNode);
       audioSrc.connect(this._audioContext.destination);
     }
+
+    return subscriptions;
   }
 
   update(opts: WrapperOpts): void {
     this._opts = opts || defaultWrapperOpts;
     this._update();
-  }
-
-  private _update(): void {
-    this._analyserNode.fftSize = this._opts.fftSize;
-    this._freqData = new Uint8Array(this._analyserNode.frequencyBinCount);
   }
 
   reset(): void {
@@ -95,8 +69,29 @@ export class AudioWrapper {
     window.clearInterval(this._visualizerIntervalId);
   }
 
+  get audioApiSupported(): boolean {
+    return this._audioContext !== null;
+  }
+
   get dataStream(): Observable<Array<number>> {
     return this._dataSubject.asObservable().share();
+  }
+
+  private _getAudioContext(): any {
+    if (typeof (<any>window).AudioContext !== 'undefined') {
+      return new (<any>window).AudioContext();
+    } else if (typeof (<any>window).webkitAudioContext !== 'undefined') {
+      return new (<any>window).webkitAudioContext();
+    } else if (typeof (<any>window).mozAudioContext !== 'undefined') {
+      return new (<any>window).mozAudioContext();
+    } else {
+      return null;
+    }
+  }
+
+  private _update(): void {
+    this._analyserNode.fftSize = this._opts.fftSize;
+    this._freqData = new Uint8Array(this._analyserNode.frequencyBinCount);
   }
 
   private _processFreqData(): void {

@@ -1,3 +1,8 @@
 button, audio {
     margin: 0.5em;
 }
+
+.row {
+  display: flex;
+  flex-direction: row;
+}

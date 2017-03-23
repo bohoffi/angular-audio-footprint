@@ -1,11 +1,11 @@
-import { interval } from 'rxjs/observable/interval';
 import { Component, OnInit, EventEmitter, Output } from '@angular/core';
-import { FormGroup, FormControl, FormBuilder } from "@angular/forms";
-import { ClearSubscriptions } from "app/util/decorators";
-import { ChartOpts } from "app/chart/chart.component";
-import { WrapperOpts } from "app/util/audio-wrapper";
-import { MdDialogRef } from "@angular/material";
-import { defaultWrapperOpts, defaultChartOpts } from "app/util/consts";
+import { FormGroup, FormControl, FormBuilder } from '@angular/forms';
+
+import { MdDialogRef } from '@angular/material';
+
+import { defaultWrapperOpts, defaultChartOpts } from '../util/consts';
+import { ClearSubscriptions } from '../util/decorators';
+import { WrapperOpts, ChartOpts } from '../util/interfaces';
 
 @Component({
   selector: 'app-settings',
@@ -16,22 +16,26 @@ export class SettingsDialogComponent implements OnInit {
 
   settings: FormGroup;
 
+  private _opts: { wrapper: WrapperOpts, chart: ChartOpts };
+
   constructor(public _dialogRef: MdDialogRef<SettingsDialogComponent>,
     private _fb: FormBuilder) {
+
+    this._opts = this._dialogRef.config.data || { wrapper: defaultWrapperOpts, chart: defaultChartOpts };
   }
 
   ngOnInit(): void {
 
     this.settings = this._fb.group({
       wrapper: this._fb.group({
-        fftSize: defaultWrapperOpts.fftSize,
-        interval: defaultWrapperOpts.interval
+        fftSize: this._opts.wrapper.fftSize,
+        interval: this._opts.wrapper.interval
       }),
       chart: this._fb.group({
-        cellHeight: defaultChartOpts.cellHeight,
-        cellWidth: defaultChartOpts.cellHeight,
-        cellX: defaultChartOpts.cellHeight,
-        cellY: defaultChartOpts.cellHeight
+        cellHeight: this._opts.chart.cellHeight,
+        cellWidth: this._opts.chart.cellHeight,
+        cellX: this._opts.chart.cellHeight,
+        cellY: this._opts.chart.cellHeight
       })
     });
   }

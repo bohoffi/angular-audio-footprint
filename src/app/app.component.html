@@ -7,8 +7,9 @@
     <app-file-selector (audioFile)="fileSelected($event)"></app-file-selector>
   </div>
 
-  <div>
+  <div class="row">
     <audio #player controls></audio>
+    <button md-raised-button color="primary" *ngIf="freqData.length" (click)="downloadSvg()">Download SVG</button>
   </div>
 
   <div>

@@ -8,7 +8,7 @@ import { Component, OnInit, EventEmitter, Output, ViewChild, ElementRef } from '
 export class FileSelectorComponent {
 
   file: File;
-  hasDropZoneOver: boolean = false;
+  hasDropZoneOver = false;
 
   @ViewChild('selector')
   fileInput: ElementRef;

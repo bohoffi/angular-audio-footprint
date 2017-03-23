@@ -1,13 +1,9 @@
 import { Component, OnInit, Input, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-import { defaultChartOpts } from "app/util/consts";
+
 import * as D3 from 'd3';
 
-export interface ChartOpts {
-  cellWidth: number;
-  cellHeight: number;
-  cellX: number;
-  cellY: number;
-}
+import { defaultChartOpts } from '../util/consts';
+import { ChartOpts } from '../util/interfaces';
 
 @Component({
   selector: 'app-chart',
@@ -16,17 +12,19 @@ export interface ChartOpts {
 })
 export class ChartComponent {
 
-  private _data: Array<Array<number>> = [];
-
   opts: ChartOpts;
 
-  private _rThreshold: number = 85;
-  private _gThreshold: number = 170;
+  @Input()
+  svgWidth = 0;
+  @Input()
+  svgHeight = 0;
+  @ViewChild('svg')
+  svg: ElementRef;
 
-  @Input()
-  svgWidth: number = 0;
-  @Input()
-  svgHeight: number = 0;
+  private _data: Array<Array<number>> = [];
+
+  private _rThreshold = 85;
+  private _gThreshold = 170;
 
   constructor() {
     this.opts = defaultChartOpts;
@@ -38,7 +36,7 @@ export class ChartComponent {
 
   update(data: Array<Array<number>>): void {
 
-    let self = this;
+    const self = this;
     this._data = data;
     const svg = D3.select('#svg');
 
