@@ -1,5 +1,5 @@
 import { AudioWrapper } from './util/audio-wrapper';
-import { ChartComponent } from './chart/chart.component';
+import { ChartComponent } from './components/chart/chart.component';
 import { TestBed, async } from '@angular/core/testing';
 
 import { AppComponent } from './app.component';

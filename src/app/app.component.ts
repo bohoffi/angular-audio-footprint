@@ -1,13 +1,14 @@
-import { Component, ViewChild, ElementRef, AfterViewInit, VERSION, AfterContentInit, OnInit } from '@angular/core';
+import {AfterViewInit, Component, ElementRef, OnInit, VERSION, ViewChild} from '@angular/core';
 
-import { MdDialog } from '@angular/material';
+import {MdDialog} from '@angular/material';
 
-import { ChartComponent } from './chart/chart.component';
-import { SettingsDialogComponent } from './settings/settings.dialog.component';
-import { AudioWrapper } from './util/audio-wrapper';
-import { defaultWrapperOpts, defaultChartOpts } from './util/consts';
-import { ClearSubscriptions } from './util/decorators';
-import { WrapperOpts, ChartOpts } from './util/interfaces';
+import {ArcDataObject, ChartComponent} from './components/chart/chart.component';
+import {SettingsDialogComponent} from './components/settings/settings.dialog.component';
+import {AudioWrapper} from './util/audio-wrapper';
+import {defaultChartOpts, defaultWrapperOpts} from './util/consts';
+import {ClearSubscriptions} from './util/decorators';
+import {ChartOpts, WrapperOpts} from './util/interfaces';
+import {arcDataObjectTransformer} from './util/utils';
 
 @ClearSubscriptions()
 @Component({
@@ -17,8 +18,7 @@ import { WrapperOpts, ChartOpts } from './util/interfaces';
 })
 export class AppComponent implements OnInit, AfterViewInit {
 
-  freqData: Array<Array<number>> = [];
-  maxFreqs = 0;
+  freqData: Array<ArcDataObject> = [];
   audioApiSupported = true;
 
   @ViewChild(ChartComponent)
@@ -27,10 +27,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   player: ElementRef;
 
   private _subscriptions: any = {};
-  private _opts: { wrapper: WrapperOpts, chart: ChartOpts } = { wrapper: defaultWrapperOpts, chart: defaultChartOpts };
+  private _opts: { wrapper: WrapperOpts, chart: ChartOpts }
+    = {wrapper: defaultWrapperOpts, chart: defaultChartOpts};
 
   constructor(private _audioWrapper: AudioWrapper,
-    private _dialog: MdDialog) {
+              private _dialog: MdDialog) {
     console.log('Angular: ', VERSION.full);
   }
 
@@ -44,19 +45,28 @@ export class AppComponent implements OnInit, AfterViewInit {
       this._audioWrapper.dataStream.subscribe(
         data => {
           const d = data.filter(value => value > 0);
-          this.freqData.push(d);
-          if (d.length > this.maxFreqs) {
-            this.maxFreqs = d.length;
-          }
-          this.chart.update(this.freqData);
+          this.freqData.push(arcDataObjectTransformer(d, this.freqData.length));
         },
-        error => console.error(error)
+        error => console.error(error),
+        () => {
+          this.chart.update(this.freqData);
+        }
+      );
+      this._audioWrapper.stateStream.subscribe(
+        (state: boolean) => {
+          if (state) {
+            this.chart.reset();
+          } else {
+            this.chart.update(this.freqData);
+          }
+        },
+        err => console.error(err)
       );
     }
   }
 
   openSettings(): void {
-    const dialogRef = this._dialog.open(SettingsDialogComponent, { data: this._opts });
+    const dialogRef = this._dialog.open(SettingsDialogComponent, {data: this._opts, hasBackdrop: true});
     dialogRef.afterClosed().subscribe(
       (opts: { wrapper: WrapperOpts, chart: ChartOpts }) => {
         if (opts) {
@@ -80,7 +90,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.player.nativeElement.pause();
 
     const svgData = this.chart.svg.nativeElement.outerHTML;
-    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
     const svgUrl = URL.createObjectURL(svgBlob);
     const downloadLink = document.createElement('a');
     downloadLink.href = svgUrl;

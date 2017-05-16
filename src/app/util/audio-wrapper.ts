@@ -19,6 +19,7 @@ export class AudioWrapper {
 
   private _visualizerIntervalId = 0;
   private _dataSubject: Subject<Array<number>> = new Subject();
+  private _stateSubject: Subject<boolean> = new Subject();
 
   constructor() {
     this._audioContext = this._getAudioContext();
@@ -34,10 +35,12 @@ export class AudioWrapper {
     subscriptions.playing = Observable.fromEvent(this._player, 'playing')
       .subscribe(e => {
         this._visualizerIntervalId = window.setInterval(() => this._processFreqData(), this._opts.interval);
+        this._stateSubject.next(true);
       });
     subscriptions.pausing = Observable.fromEvent(this._player, 'pause')
       .subscribe(e => {
         window.clearInterval(this._visualizerIntervalId);
+        this._stateSubject.next(false);
       });
     subscriptions.ended = Observable.fromEvent(this._player, 'ended')
       .subscribe(e => {
@@ -77,6 +80,10 @@ export class AudioWrapper {
     return this._dataSubject.asObservable().share();
   }
 
+  get stateStream(): Observable<boolean> {
+    return this._stateSubject.asObservable().share();
+  }
+
   private _getAudioContext(): any {
     if (typeof (<any>window).AudioContext !== 'undefined') {
       return new (<any>window).AudioContext();
@@ -96,7 +103,7 @@ export class AudioWrapper {
 
   private _processFreqData(): void {
     this._analyserNode.getByteFrequencyData(this._freqData);
-    if (!this._dataSubject) {
+    if (!this._dataSubject || this._dataSubject.isStopped) {
       this._dataSubject = new Subject();
     }
     this._dataSubject.next(Array.from(this._freqData.slice()));
