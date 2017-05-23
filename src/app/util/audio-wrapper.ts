@@ -1,10 +1,10 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
+import {Observable} from 'rxjs/Observable';
+import {Subject} from 'rxjs/Subject';
 
-import { defaultWrapperOpts } from './consts';
-import { WrapperOpts } from './interfaces';
+import {defaultWrapperOpts} from './consts';
+import {WrapperOpts} from './interfaces';
 
 @Injectable()
 export class AudioWrapper {
@@ -29,12 +29,33 @@ export class AudioWrapper {
     this._player = player;
     this._opts = opts || defaultWrapperOpts;
 
+    this._hookUpEvents();
+
+    if (this._audioContext) {
+      this._init();
+    }
+
+    return this._hookUpEvents();
+  }
+
+  private _init(): void {
+    const audioSrc = this._audioContext.createMediaElementSource(this._player);
+    this._analyserNode = this._audioContext.createAnalyser();
+    this._analyserNode.fftSize = this._opts.fftSize;
+    this._freqData = new Uint8Array(this._analyserNode.frequencyBinCount);
+
+    audioSrc.connect(this._analyserNode);
+    audioSrc.connect(this._audioContext.destination);
+  }
+
+  private _hookUpEvents(): any {
+
     const subscriptions: any = {};
 
     // https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events
     subscriptions.playing = Observable.fromEvent(this._player, 'playing')
       .subscribe(e => {
-        this._visualizerIntervalId = window.setInterval(() => this._processFreqData(), this._opts.interval);
+        this._visualizerIntervalId = window.setInterval(this._processFreqData, this._opts.interval);
         this._stateSubject.next(true);
       });
     subscriptions.pausing = Observable.fromEvent(this._player, 'pause')
@@ -47,16 +68,6 @@ export class AudioWrapper {
         window.clearInterval(this._visualizerIntervalId);
         this._dataSubject.complete();
       });
-
-    if (this._audioContext) {
-      const audioSrc = this._audioContext.createMediaElementSource(this._player);
-      this._analyserNode = this._audioContext.createAnalyser();
-      this._analyserNode.fftSize = this._opts.fftSize;
-      this._freqData = new Uint8Array(this._analyserNode.frequencyBinCount);
-
-      audioSrc.connect(this._analyserNode);
-      audioSrc.connect(this._audioContext.destination);
-    }
 
     return subscriptions;
   }

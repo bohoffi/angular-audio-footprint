@@ -30,6 +30,10 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _opts: { wrapper: WrapperOpts, chart: ChartOpts }
     = {wrapper: defaultWrapperOpts, chart: defaultChartOpts};
 
+  private static _handleError(error: Error): void {
+    console.error(error);
+  }
+
   constructor(private _audioWrapper: AudioWrapper,
               private _dialog: MdDialog) {
     console.log('Angular: ', VERSION.full);
@@ -42,42 +46,47 @@ export class AppComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     if (this.audioApiSupported) {
       this._subscriptions = this._audioWrapper.init(this.player.nativeElement);
-      this._audioWrapper.dataStream.subscribe(
-        data => {
-          const d = data.filter(value => value > 0);
-          this.freqData.push(arcDataObjectTransformer(d, this.freqData.length));
-        },
-        error => console.error(error),
-        () => {
-          this.chart.update(this.freqData);
-        }
-      );
-      this._audioWrapper.stateStream.subscribe(
-        (state: boolean) => {
-          if (state) {
-            this.chart.reset();
-          } else {
-            this.chart.update(this.freqData);
-          }
-        },
-        err => console.error(err)
-      );
+      this._handleDataStream();
+      this._handleStateStream();
     }
+  }
+
+  private _handleDataStream(): void {
+    this._audioWrapper.dataStream.subscribe(this._processStreamData, AppComponent._handleError, this._updateChart);
+  }
+
+  private _processStreamData(data: number[]): void {
+    this.freqData = this.freqData.concat(arcDataObjectTransformer(data.filter(value => value > 0), this.freqData.length));
+  }
+
+  private _handleStateStream(): void {
+    this._audioWrapper.stateStream.subscribe(this._processState, AppComponent._handleError);
+  }
+
+  private _processState(state: boolean): void {
+    if (state) {
+      ChartComponent.reset();
+    } else {
+      this._updateChart();
+    }
+  }
+
+  private _updateChart(): void {
+    this.chart.update(this.freqData);
   }
 
   openSettings(): void {
     const dialogRef = this._dialog.open(SettingsDialogComponent, {data: this._opts, hasBackdrop: true});
-    dialogRef.afterClosed().subscribe(
-      (opts: { wrapper: WrapperOpts, chart: ChartOpts }) => {
-        if (opts) {
-          this._opts = opts;
-          this._audioWrapper.update(opts.wrapper);
-          this.chart.setOpts(opts.chart);
-          this._reset();
-        }
-      },
-      error => console.error(error)
-    );
+    dialogRef.afterClosed().subscribe(this._handleSettings, AppComponent._handleError);
+  }
+
+  private _handleSettings(opts: { wrapper: WrapperOpts, chart: ChartOpts }): void {
+    if (opts) {
+      this._opts = opts;
+      this._audioWrapper.update(opts.wrapper);
+      this.chart.setOpts(opts.chart);
+      this._reset();
+    }
   }
 
   fileSelected(file: File): void {
@@ -103,6 +112,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _reset(): void {
     this.freqData = [];
     this._audioWrapper.reset();
-    this.chart.reset();
+    ChartComponent.reset();
   }
 }

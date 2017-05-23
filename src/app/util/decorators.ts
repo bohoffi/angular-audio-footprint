@@ -5,33 +5,34 @@ import {Subscriber} from 'rxjs/Subscriber';
  */
 // creating the decorator DestroySubscribers
 export function ClearSubscriptions() {
-    return function (target: any) {
+  return function (target: any) {
 
-        // decorating the function ngOnDestroy
-        target.prototype.ngOnDestroy = ngOnDestroyDecorator(target.prototype.ngOnDestroy);
+    // decorating the function ngOnDestroy
+    target.prototype.ngOnDestroy = ngOnDestroyDecorator(target.prototype.ngOnDestroy);
 
-        // decorator function
-        function ngOnDestroyDecorator(onDestroyFunc) {
-            return function () {
+    // returning the decorated class
+    return target;
+  };
+}
 
-                // saving the result of ngOnDestroy performance to the variable superData
-                const superData = onDestroyFunc ? onDestroyFunc.apply(this, arguments) : null;
+function ngOnDestroyDecorator(onDestroyFunc) {
+  return function () {
 
-                if (this._subscriptions) {
-                    Object.keys(this._subscriptions).forEach(subKey => {
-                        const subscriber = this._subscriptions[subKey];
-                        if (subscriber && subscriber instanceof Subscriber && !subscriber.closed) {
-                            subscriber.unsubscribe();
-                        }
-                    });
-                }
+    // saving the result of ngOnDestroy performance to the variable superData
+    const superData = onDestroyFunc ? onDestroyFunc.apply(this, arguments) : null;
 
-                // returning the result of ngOnDestroy performance
-                return superData;
-            };
-        }
+    if (this._subscriptions) {
+      Object.keys(this._subscriptions)
+        .map(subKey => this._subscriptions[subKey])
+        .filter(subscriber => {
+          return subscriber && subscriber instanceof Subscriber && !subscriber.closed;
+        })
+        .forEach(subscriber => {
+          subscriber.unsubscribe();
+        });
+    }
 
-        // returning the decorated class
-        return target;
-    };
+    // returning the result of ngOnDestroy performance
+    return superData;
+  };
 }
