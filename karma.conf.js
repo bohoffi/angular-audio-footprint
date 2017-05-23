@@ -12,7 +12,7 @@ module.exports = function (config) {
     mime: getMime(),
     coverageIstanbulReporter: istanbulReporter(),
     angularCli: ngCli(),
-    reporters: getReporters(),
+    reporters: getReporters(config),
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
@@ -62,7 +62,7 @@ function ngCli() {
   return {environment: 'dev'};
 }
 
-function getReporters() {
+function getReporters(config) {
   return config.angularCli && config.angularCli.codeCoverage ? ['progress', 'coverage-istanbul'] : ['progress', 'kjhtml'];
 }
 

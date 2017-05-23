@@ -1,18 +1,30 @@
-import { AudioWrapper } from './util/audio-wrapper';
-import { ChartComponent } from './components/chart/chart.component';
-import { TestBed, async } from '@angular/core/testing';
+import {AudioWrapper} from './util/audio-wrapper';
+import {ChartComponent} from './components/chart/chart.component';
+import {TestBed, async} from '@angular/core/testing';
 
-import { AppComponent } from './app.component';
+import {AppComponent} from './app.component';
+import {FileSelectorComponent} from './components/file-selector/file-selector.component';
+import {MdCardModule, MdDialogModule, MdDialogRef, MdInputModule} from '@angular/material';
+
+class MdDialogRefMock {
+}
 
 describe('AppComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [
         AppComponent,
-        ChartComponent
+        ChartComponent,
+        FileSelectorComponent
+      ],
+      imports: [
+        MdInputModule,
+        MdCardModule,
+        MdDialogModule
       ],
       providers: [
-        AudioWrapper
+        AudioWrapper,
+        {provide: MdDialogRef, use: MdDialogRefMock}
       ]
     }).compileComponents();
   }));
