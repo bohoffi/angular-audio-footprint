@@ -1,4 +1,6 @@
 # AudioVisualizer
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/bohoffi/angular-audio-footprint.svg)](https://greenkeeper.io/)
 [![devDependency Status](https://david-dm.org/bohoffi/angular-audio-footprint/status.svg?branch=master)](https://david-dm.org/bohoffi/angular-audio-footprint)
 [![Build Status](https://travis-ci.org/bohoffi/angular-audio-footprint.svg?branch=master)](https://travis-ci.org/bohoffi/angular-audio-footprint)
 [![codebeat badge](https://codebeat.co/badges/0bfd5604-36c2-47ba-a33e-b8b5fd9f72cb)](https://codebeat.co/projects/github-com-bohoffi-angular-audio-footprint-master)
