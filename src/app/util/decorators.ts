@@ -5,33 +5,41 @@ import {Subscriber} from 'rxjs/Subscriber';
  */
 // creating the decorator DestroySubscribers
 export function ClearSubscriptions() {
-    return function (target: any) {
+  return decorTarget;
+}
 
-        // decorating the function ngOnDestroy
-        target.prototype.ngOnDestroy = ngOnDestroyDecorator(target.prototype.ngOnDestroy);
+function decorTarget(target: any) {
+  // decorating the function ngOnDestroy
+  target.prototype.ngOnDestroy = ngOnDestroyDecorator(target.prototype.ngOnDestroy);
 
-        // decorator function
-        function ngOnDestroyDecorator(onDestroyFunc) {
-            return function () {
+  // returning the decorated class
+  return target;
+}
 
-                // saving the result of ngOnDestroy performance to the variable superData
-                const superData = onDestroyFunc ? onDestroyFunc.apply(this, arguments) : null;
+function ngOnDestroyDecorator(onDestroyFunc) {
+  return function () {
 
-                if (this._subscriptions) {
-                    Object.keys(this._subscriptions).forEach(subKey => {
-                        const subscriber = this._subscriptions[subKey];
-                        if (subscriber && subscriber instanceof Subscriber && !subscriber.closed) {
-                            subscriber.unsubscribe();
-                        }
-                    });
-                }
+    // saving the result of ngOnDestroy performance to the variable superData
+    const superData = onDestroyFunc ? onDestroyFunc.apply(this, arguments) : null;
 
-                // returning the result of ngOnDestroy performance
-                return superData;
-            };
-        }
+    if (!this._subscriptions) {
+      return superData;
+    }
 
-        // returning the decorated class
-        return target;
-    };
+    unsubscribe(this);
+
+    // returning the result of ngOnDestroy performance
+    return superData;
+  };
+}
+
+function unsubscribe(subscriptionHost: any) {
+  Object.keys(subscriptionHost._subscriptions)
+    .map(subKey => subscriptionHost._subscriptions[subKey])
+    .filter(subscriber => {
+      return subscriber && subscriber instanceof Subscriber && !subscriber.closed;
+    })
+    .forEach(subscriber => {
+      subscriber.unsubscribe();
+    });
 }
