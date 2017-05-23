@@ -5,14 +5,15 @@ import {Subscriber} from 'rxjs/Subscriber';
  */
 // creating the decorator DestroySubscribers
 export function ClearSubscriptions() {
-  return function (target: any) {
+  return decorTarget;
+}
 
-    // decorating the function ngOnDestroy
-    target.prototype.ngOnDestroy = ngOnDestroyDecorator(target.prototype.ngOnDestroy);
+function decorTarget(target: any) {
+  // decorating the function ngOnDestroy
+  target.prototype.ngOnDestroy = ngOnDestroyDecorator(target.prototype.ngOnDestroy);
 
-    // returning the decorated class
-    return target;
-  };
+  // returning the decorated class
+  return target;
 }
 
 function ngOnDestroyDecorator(onDestroyFunc) {
@@ -21,18 +22,24 @@ function ngOnDestroyDecorator(onDestroyFunc) {
     // saving the result of ngOnDestroy performance to the variable superData
     const superData = onDestroyFunc ? onDestroyFunc.apply(this, arguments) : null;
 
-    if (this._subscriptions) {
-      Object.keys(this._subscriptions)
-        .map(subKey => this._subscriptions[subKey])
-        .filter(subscriber => {
-          return subscriber && subscriber instanceof Subscriber && !subscriber.closed;
-        })
-        .forEach(subscriber => {
-          subscriber.unsubscribe();
-        });
+    if (!this._subscriptions) {
+      return superData;
     }
+
+    unsubscribe(this);
 
     // returning the result of ngOnDestroy performance
     return superData;
   };
+}
+
+function unsubscribe(subscriptionHost: any) {
+  Object.keys(subscriptionHost._subscriptions)
+    .map(subKey => subscriptionHost._subscriptions[subKey])
+    .filter(subscriber => {
+      return subscriber && subscriber instanceof Subscriber && !subscriber.closed;
+    })
+    .forEach(subscriber => {
+      subscriber.unsubscribe();
+    });
 }

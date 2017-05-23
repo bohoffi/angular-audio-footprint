@@ -29,8 +29,6 @@ export class AudioWrapper {
     this._player = player;
     this._opts = opts || defaultWrapperOpts;
 
-    this._hookUpEvents();
-
     if (this._audioContext) {
       this._init();
     }
@@ -55,7 +53,7 @@ export class AudioWrapper {
     // https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events
     subscriptions.playing = Observable.fromEvent(this._player, 'playing')
       .subscribe(e => {
-        this._visualizerIntervalId = window.setInterval(this._processFreqData, this._opts.interval);
+        this._visualizerIntervalId = window.setInterval(() => this._processFreqData(), this._opts.interval);
         this._stateSubject.next(true);
       });
     subscriptions.pausing = Observable.fromEvent(this._player, 'pause')

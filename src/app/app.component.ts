@@ -52,7 +52,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   private _handleDataStream(): void {
-    this._audioWrapper.dataStream.subscribe(this._processStreamData, AppComponent._handleError, this._updateChart);
+    this._audioWrapper.dataStream.subscribe(data => this._processStreamData(data), AppComponent._handleError, this._updateChart);
   }
 
   private _processStreamData(data: number[]): void {
@@ -60,7 +60,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   private _handleStateStream(): void {
-    this._audioWrapper.stateStream.subscribe(this._processState, AppComponent._handleError);
+    this._audioWrapper.stateStream.subscribe(state => this._processState(state), AppComponent._handleError);
   }
 
   private _processState(state: boolean): void {
