@@ -34,7 +34,7 @@
     "@angular/cli": "^1.0.5",
     "@angular/compiler-cli": "^4.0.0",
     "@types/d3": "^4.9.0",
-    "@types/jasmine": "2.5.50",
+    "@types/jasmine": "2.5.51",
     "@types/node": "~7.0.22",
     "codelyzer": "~3.0.1",
     "css-loader": "^0.28.1",
